@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Epic Event DJ AI Assistant Demo</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #f5f5f5;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      background:
+        linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.85)),
+        radial-gradient(circle at top, #3b2600, #111 55%);
+    }
+
+    .container {
+      max-width: 1100px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 30px;
+      align-items: center;
+    }
+
+    .content h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      color: #f4c542;
+    }
+
+    .content h2 {
+      font-size: 1.3rem;
+      font-weight: normal;
+      color: #ddd;
+      margin-bottom: 25px;
+    }
+
+    .content p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #ddd;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #f4c542;
+      color: #111;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .demo-card {
+      background: #1d1d1d;
+      border: 1px solid #3b3b3b;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+
+    .chat-header {
+      border-bottom: 1px solid #333;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .chat-header strong {
+      color: #f4c542;
+      font-size: 1.1rem;
+    }
+
+    .chat-box {
+      height: 420px;
+      overflow-y: auto;
+      padding: 10px;
+      background: #111;
+      border-radius: 12px;
+      border: 1px solid #333;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      line-height: 1.4;
+      font-size: .95rem;
+      white-space: pre-line;
+    }
+
+    .bot {
+      background: #262626;
+      color: #f5f5f5;
+      margin-right: 30px;
+    }
+
+    .user {
+      background: #f4c542;
+      color: #111;
+      margin-left: 30px;
+      text-align: right;
+      font-weight: bold;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .chat-input button {
+      background: #f4c542;
+      border: none;
+      color: #111;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .quick-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-buttons button {
+      background: transparent;
+      border: 1px solid #f4c542;
+      color: #f4c542;
+      padding: 8px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: .85rem;
+    }
+
+    .lead-summary {
+      margin-top: 15px;
+      padding: 12px;
+      border: 1px solid #f4c542;
+      border-radius: 12px;
+      background: rgba(244,197,66,.08);
+      display: none;
+    }
+
+    .lead-summary a {
+      color: #f4c542;
+      font-weight: bold;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .content h1 {
+        font-size: 2.3rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <section class="hero">
+    <div class="container">
+
+      <div class="content">
+        <span class="badge">AI Assistant Demo</span>
+        <h1>Epic Event DJ</h1>
+        <h2>Your Event • Your Music • Your Vibe</h2>
+
+        <p>
+          This is a demo AI assistant for a DJ/event business. It answers common customer questions,
+          explains packages, helps with booking questions, and collects lead information for a quote request.
+        </p>
+
+        <p>
+          Use this as proof for small business owners: the assistant can reduce missed messages,
+          collect event details, and help turn visitors into leads.
+        </p>
+      </div>
+
+      <div class="demo-card">
+        <div class="chat-header">
+          <strong>Epic Event DJ Assistant</strong>
+          <p style="margin: 5px 0 0; color: #aaa; font-size: .9rem;">
+            Ask about services, pricing, karaoke, deposits, or booking.
+          </p>
+        </div>
+
+        <div class="chat-box" id="chatBox"></div>
+
+        <div class="quick-buttons">
+          <button onclick="quickAsk('What services do you offer?')">Services</button>
+          <button onclick="quickAsk('How much are your packages?')">Pricing</button>
+          <button onclick="quickAsk('Can you do karaoke?')">Karaoke</button>
+          <button onclick="quickAsk('How do I request a quote?')">Request Quote</button>
+          <button onclick="quickAsk('What areas do you serve?')">Service Area</button>
+        </div>
+
+        <div class="chat-input">
+          <input id="userInput" type="text" placeholder="Type your question..." />
+          <button onclick="sendMessage()">Send</button>
+        </div>
+
+        <div class="lead-summary" id="leadSummary"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    const chatBox = document.getElementById("chatBox");
+    const userInput = document.getElementById("userInput");
+    const leadSummary = document.getElementById("leadSummary");
+
+    let collectingLead = false;
+    let leadStep = 0;
+
+    const leadQuestions = [
+      "Great. What is your name?",
+      "What is your phone number?",
+      "What is your email address?",
+      "What is the event date?",
+      "What type of event is it? Example: wedding, birthday, school event, church event, corporate event.",
+      "What is the event location?",
+      "About how many guests are expected?"
+    ];
+
+    const leadFields = [
+      "Name",
+      "Phone",
+      "Email",
+      "Event Date",
+      "Event Type",
+      "Location",
+      "Estimated Guest Count"
+    ];
+
+    let leadData = {};
+
+    function addMessage(text, sender) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.textContent = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function botReply(text) {
+      setTimeout(() => addMessage(text, "bot"), 350);
+    }
+
+    function quickAsk(text) {
+      userInput.value = text;
+      sendMessage();
+    }
+
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, "user");
+      userInput.value = "";
+
+      if (collectingLead) {
+        handleLeadCollection(text);
+        return;
+      }
+
+      handleBotResponse(text.toLowerCase());
+    }
+
+    function handleBotResponse(input) {
+      if (
+        input.includes("service") ||
+        input.includes("offer") ||
+        input.includes("what do you do")
+      ) {
+        botReply(
+          "Epic Event DJ provides DJ entertainment for weddings, birthdays, school events, private parties, church events, and corporate events.\n\nServices may include DJ music, sound system, lighting, MC services, karaoke, and event coordination depending on the package."
+        );
+      }
+
+      else if (
+        input.includes("price") ||
+        input.includes("package") ||
+        input.includes("cost") ||
+        input.includes("how much")
+      ) {
+        botReply(
+          "Here are the current packages:\n\nBasic Package – $400\nUp to 3 hours, DJ, sound system, and basic lighting.\n\nPremium Package – $600\nUp to 4 hours, upgraded sound and lighting, plus MC services.\n\nDeluxe Package – $800\n5+ hours, premium sound and lighting, MC services, and event coordination.\n\nAdd-ons:\nKaraoke – $150\nGlow sticks, 25 pack – $50\nUplighting and photo booth available upon request."
+        );
+      }
+
+      else if (
+        input.includes("wedding") ||
+        input.includes("birthday") ||
+        input.includes("school") ||
+        input.includes("church") ||
+        input.includes("corporate")
+      ) {
+        botReply(
+          "Yes. Epic Event DJ is available for weddings, birthdays, school events, church events, private parties, and corporate events.\n\nAvailability depends on the event date, location, and setup needs. I can collect your event details now."
+        );
+        startLeadCollection();
+      }
+
+      else if (
+        input.includes("quote") ||
+        input.includes("book") ||
+        input.includes("booking") ||
+        input.includes("available") ||
+        input.includes("availability")
+      ) {
+        botReply(
+          "To request a quote, I’ll collect a few event details: name, phone, email, event date, event type, location, and estimated guest count."
+        );
+        startLeadCollection();
+      }
+
+      else if (
+        input.includes("deposit") ||
+        input.includes("pay") ||
+        input.includes("payment")
+      ) {
+        botReply(
+          "A $100 deposit is required to lock in the event date after availability is confirmed.\n\nDeposit/payment options may include Cash App or Zelle. Full payment may be required for last-minute bookings."
+        );
+      }
+
+      else if (input.includes("karaoke")) {
+        botReply(
+          "Yes. Karaoke is available as an add-on for $150. It can be added to parties, birthdays, family events, and other celebrations."
+        );
+      }
+
+      else if (
+        input.includes("area") ||
+        input.includes("serve") ||
+        input.includes("location") ||
+        input.includes("travel")
+      ) {
+        botReply(
+          "Epic Event DJ serves Central Florida, including Orlando, Clermont, Groveland, Winter Garden, Kissimmee, and surrounding areas. Travel may depend on distance and event details."
+        );
+      }
+
+      else {
+        botReply(
+          "I can help with services, pricing, karaoke, deposits, availability, booking, and quote requests.\n\nTry asking: “How much are your packages?” or “How do I request a quote?”"
+        );
+      }
+    }
+
+    function startLeadCollection() {
+      collectingLead = true;
+      leadStep = 0;
+      leadData = {};
+      setTimeout(() => {
+        botReply(leadQuestions[leadStep]);
+      }, 600);
+    }
+
+    function handleLeadCollection(answer) {
+      leadData[leadFields[leadStep]] = answer;
+      leadStep++;
+
+      if (leadStep < leadQuestions.length) {
+        botReply(leadQuestions[leadStep]);
+      } else {
+        collectingLead = false;
+        showLeadSummary();
+      }
+    }
+
+    function showLeadSummary() {
+      const summaryText = `
+New DJ Lead Collected:
+
+Name: ${leadData["Name"]}
+Phone: ${leadData["Phone"]}
+Email: ${leadData["Email"]}
+Event Date: ${leadData["Event Date"]}
+Event Type: ${leadData["Event Type"]}
+Location: ${leadData["Location"]}
+Estimated Guest Count: ${leadData["Estimated Guest Count"]}
+      `;
+
+      botReply(
+        "Perfect. I collected the event details. A team member would normally review this and follow up with availability and a quote."
+      );
+
+      leadSummary.style.display = "block";
+      leadSummary.innerHTML = `
+        <strong>Lead Captured:</strong>
+        <pre style="white-space: pre-wrap; color: #ddd;">${summaryText}</pre>
+        <a href="https://forms.gle/zVvsS2H5n7nAB7e19" target="_blank">
+          Open Official Quote Request Form
+        </a>
+      `;
+    }
+
+    userInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
+
+    addMessage(
+      "Hi, I’m the Epic Event DJ Assistant. I can answer questions about packages, services, karaoke, deposits, service areas, and quote requests. What would you like to know?",
+      "bot"
+    );
+  </script>
+</body>
+</html>
