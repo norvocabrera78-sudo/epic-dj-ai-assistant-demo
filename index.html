@@ -21,7 +21,7 @@
       justify-content: center;
       padding: 40px 20px;
       background:
-        linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.85)),
+        linear-gradient(rgba(0,0,0,.75), rgba(0,0,0,.9)),
         radial-gradient(circle at top, #3b2600, #111 55%);
     }
 
@@ -29,7 +29,7 @@
       max-width: 1100px;
       width: 100%;
       display: grid;
-      grid-template-columns: 1fr 420px;
+      grid-template-columns: 1fr 430px;
       gap: 30px;
       align-items: center;
     }
@@ -63,6 +63,18 @@
       margin-bottom: 15px;
     }
 
+    .cta-box {
+      margin-top: 25px;
+      padding: 18px;
+      border: 1px solid #f4c542;
+      border-radius: 14px;
+      background: rgba(244,197,66,.08);
+    }
+
+    .cta-box strong {
+      color: #f4c542;
+    }
+
     .demo-card {
       background: #1d1d1d;
       border: 1px solid #3b3b3b;
@@ -83,7 +95,7 @@
     }
 
     .chat-box {
-      height: 420px;
+      height: 390px;
       overflow-y: auto;
       padding: 10px;
       background: #111;
@@ -166,8 +178,19 @@
     }
 
     .lead-summary a {
-      color: #f4c542;
+      display: inline-block;
+      margin-top: 10px;
+      background: #f4c542;
+      color: #111;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 10px;
       font-weight: bold;
+    }
+
+    pre {
+      font-family: Consolas, monospace;
+      font-size: .85rem;
     }
 
     @media (max-width: 900px) {
@@ -188,25 +211,34 @@
 
       <div class="content">
         <span class="badge">AI Assistant Demo</span>
+
         <h1>Epic Event DJ</h1>
         <h2>Your Event • Your Music • Your Vibe</h2>
 
         <p>
-          This is a demo AI assistant for a DJ/event business. It answers common customer questions,
-          explains packages, helps with booking questions, and collects lead information for a quote request.
+          This is a demo AI assistant for a DJ/event business. It answers common customer
+          questions, explains packages, helps with booking questions, and collects lead
+          information for a quote request.
         </p>
 
         <p>
-          Use this as proof for small business owners: the assistant can reduce missed messages,
-          collect event details, and help turn visitors into leads.
+          Use this as proof for small business owners: the assistant can reduce missed
+          messages, collect event details, and help turn visitors into leads.
         </p>
+
+        <div class="cta-box">
+          <strong>Business owner demo:</strong>
+          This type of AI assistant can be customized for DJs, therapists, barbers,
+          cleaners, churches, event vendors, and other small businesses that need help
+          answering questions and capturing leads.
+        </div>
       </div>
 
       <div class="demo-card">
         <div class="chat-header">
           <strong>Epic Event DJ Assistant</strong>
           <p style="margin: 5px 0 0; color: #aaa; font-size: .9rem;">
-            Ask about services, pricing, karaoke, deposits, or booking.
+            Ask about services, pricing, karaoke, deposits, booking, or quote requests.
           </p>
         </div>
 
@@ -243,10 +275,11 @@
       "Great. What is your name?",
       "What is your phone number?",
       "What is your email address?",
-      "What is the event date?",
+      "What is the event date? Please use this format: YYYY-MM-DD. Example: 2026-07-20",
       "What type of event is it? Example: wedding, birthday, school event, church event, corporate event.",
       "What is the event location?",
-      "About how many guests are expected?"
+      "About how many guests are expected?",
+      "How many hours do you need DJ services?"
     ];
 
     const leadFields = [
@@ -256,7 +289,8 @@
       "Event Date",
       "Event Type",
       "Location",
-      "Estimated Guest Count"
+      "Estimated Guest Count",
+      "Hours"
     ];
 
     let leadData = {};
@@ -308,7 +342,8 @@
         input.includes("price") ||
         input.includes("package") ||
         input.includes("cost") ||
-        input.includes("how much")
+        input.includes("how much") ||
+        input.includes("charge")
       ) {
         botReply(
           "Here are the current packages:\n\nBasic Package – $400\nUp to 3 hours, DJ, sound system, and basic lighting.\n\nPremium Package – $600\nUp to 4 hours, upgraded sound and lighting, plus MC services.\n\nDeluxe Package – $800\n5+ hours, premium sound and lighting, MC services, and event coordination.\n\nAdd-ons:\nKaraoke – $150\nGlow sticks, 25 pack – $50\nUplighting and photo booth available upon request."
@@ -320,7 +355,8 @@
         input.includes("birthday") ||
         input.includes("school") ||
         input.includes("church") ||
-        input.includes("corporate")
+        input.includes("corporate") ||
+        input.includes("party")
       ) {
         botReply(
           "Yes. Epic Event DJ is available for weddings, birthdays, school events, church events, private parties, and corporate events.\n\nAvailability depends on the event date, location, and setup needs. I can collect your event details now."
@@ -336,7 +372,7 @@
         input.includes("availability")
       ) {
         botReply(
-          "To request a quote, I’ll collect a few event details: name, phone, email, event date, event type, location, and estimated guest count."
+          "To request a quote, I’ll collect a few event details: name, phone, email, event date, event type, location, estimated guest count, and number of hours needed."
         );
         startLeadCollection();
       }
@@ -379,6 +415,7 @@
       collectingLead = true;
       leadStep = 0;
       leadData = {};
+
       setTimeout(() => {
         botReply(leadQuestions[leadStep]);
       }, 600);
@@ -396,18 +433,37 @@
       }
     }
 
-   function showLeadSummary() {
-  const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeNStuB0grRItEhj4mCvzSR4xHXQvBaoa7BPwJqKsX3Uf45Ug/viewform?usp=pp_url";
+    function formatDateForGoogleForms(dateInput) {
+      const date = new Date(dateInput);
 
-  const prefilledFormUrl =
-    formBaseUrl +
-    "&entry.2003570111=" + encodeURIComponent(leadData["Name"] || "") +
-    "&entry.1337383436=" + encodeURIComponent(leadData["Phone"] || "") +
-    "&entry.1526376388=" + encodeURIComponent(leadData["Email"] || "") +
-    "&entry.451712888=" + encodeURIComponent(leadData["Location"] || "") +
-    "&entry.752269560=" + encodeURIComponent(leadData["Estimated Guest Count"] || "");
+      if (isNaN(date.getTime())) {
+        return dateInput;
+      }
 
-  const summaryText = `
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function showLeadSummary() {
+      const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeNStuB0grRItEhj4mCvzSR4xHXQvBaoa7BPwJqKsX3Uf45Ug/viewform?usp=pp_url";
+
+      const formattedEventDate = formatDateForGoogleForms(leadData["Event Date"] || "");
+
+      const prefilledFormUrl =
+        formBaseUrl +
+        "&entry.2003570111=" + encodeURIComponent(leadData["Name"] || "") +
+        "&entry.1337383436=" + encodeURIComponent(leadData["Phone"] || "") +
+        "&entry.1526376388=" + encodeURIComponent(leadData["Email"] || "") +
+        "&entry.1771920147=" + encodeURIComponent(formattedEventDate) +
+        "&entry.1692148359=" + encodeURIComponent(leadData["Event Type"] || "") +
+        "&entry.451712888=" + encodeURIComponent(leadData["Location"] || "") +
+        "&entry.535237839=" + encodeURIComponent(leadData["Estimated Guest Count"] || "") +
+        "&entry.752269560=" + encodeURIComponent(leadData["Hours"] || "");
+
+      const summaryText = `
 New DJ Lead Collected:
 
 Name: ${leadData["Name"]}
@@ -417,21 +473,22 @@ Event Date: ${leadData["Event Date"]}
 Event Type: ${leadData["Event Type"]}
 Location: ${leadData["Location"]}
 Estimated Guest Count: ${leadData["Estimated Guest Count"]}
-  `;
+Hours: ${leadData["Hours"]}
+      `;
 
-  botReply(
-    "Perfect. I collected the event details. Click the button below to open the quote request form with your information already filled in."
-  );
+      botReply(
+        "Perfect. I collected the event details. Click the button below to open the quote request form with your information already filled in."
+      );
 
-  leadSummary.style.display = "block";
-  leadSummary.innerHTML = `
-    <strong>Lead Captured:</strong>
-    <pre style="white-space: pre-wrap; color: #ddd;">${summaryText}</pre>
-    <a href="${prefilledFormUrl}" target="_blank">
-      Submit Quote Request
-    </a>
-  `;
-}
+      leadSummary.style.display = "block";
+      leadSummary.innerHTML = `
+        <strong>Lead Captured:</strong>
+        <pre style="white-space: pre-wrap; color: #ddd;">${summaryText}</pre>
+        <a href="${prefilledFormUrl}" target="_blank">
+          Submit Quote Request
+        </a>
+      `;
+    }
 
     userInput.addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
