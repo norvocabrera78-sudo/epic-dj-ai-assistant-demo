@@ -177,15 +177,8 @@
       display: none;
     }
 
-    .lead-summary a {
-      display: inline-block;
-      margin-top: 10px;
-      background: #f4c542;
-      color: #111;
-      text-decoration: none;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-weight: bold;
+    .lead-summary strong {
+      color: #f4c542;
     }
 
     pre {
@@ -222,8 +215,8 @@
         </p>
 
         <p>
-          Use this as proof for small business owners: the assistant can reduce missed
-          messages, collect event details, and help turn visitors into leads.
+          This upgraded version automatically sends the lead to the business owner,
+          emails the customer a confirmation, and saves the request for follow-up.
         </p>
 
         <div class="cta-box">
@@ -264,12 +257,15 @@
   </section>
 
   <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxBag1zA8sB-eE_FzQXx9KVbXXl65rFlPpeQoR6I7Wg3gz9XU3xm_z875mdIs_SpxKt_A/exec";
+
     const chatBox = document.getElementById("chatBox");
     const userInput = document.getElementById("userInput");
     const leadSummary = document.getElementById("leadSummary");
 
     let collectingLead = false;
     let leadStep = 0;
+    let leadData = {};
 
     const leadQuestions = [
       "Great. What is your name?",
@@ -292,8 +288,6 @@
       "Estimated Guest Count",
       "Hours"
     ];
-
-    let leadData = {};
 
     function addMessage(text, sender) {
       const msg = document.createElement("div");
@@ -429,42 +423,47 @@
         botReply(leadQuestions[leadStep]);
       } else {
         collectingLead = false;
-        showLeadSummary();
+        submitLead();
       }
     }
 
-    function formatDateForGoogleForms(dateInput) {
-      const date = new Date(dateInput);
+    async function submitLead() {
+      botReply("Submitting your event request now...");
 
-      if (isNaN(date.getTime())) {
-        return dateInput;
+      const payload = {
+        name: leadData["Name"] || "",
+        phone: leadData["Phone"] || "",
+        email: leadData["Email"] || "",
+        eventDate: leadData["Event Date"] || "",
+        eventType: leadData["Event Type"] || "",
+        location: leadData["Location"] || "",
+        guestCount: leadData["Estimated Guest Count"] || "",
+        hours: leadData["Hours"] || ""
+      };
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain;charset=utf-8"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        showLeadSuccess();
+
+      } catch (error) {
+        botReply(
+          "Something went wrong while submitting the request. Please try again or contact Epic Event DJ directly."
+        );
+        console.error("Lead submission error:", error);
       }
-
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-
-      return `${year}-${month}-${day}`;
     }
 
-    function showLeadSummary() {
-      const formBaseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeNStuB0grRItEhj4mCvzSR4xHXQvBaoa7BPwJqKsX3Uf45Ug/viewform?usp=pp_url";
-
-      const formattedEventDate = formatDateForGoogleForms(leadData["Event Date"] || "");
-
-      const prefilledFormUrl =
-        formBaseUrl +
-        "&entry.2003570111=" + encodeURIComponent(leadData["Name"] || "") +
-        "&entry.1337383436=" + encodeURIComponent(leadData["Phone"] || "") +
-        "&entry.1526376388=" + encodeURIComponent(leadData["Email"] || "") +
-        "&entry.1771920147=" + encodeURIComponent(formattedEventDate) +
-        "&entry.1692148359=" + encodeURIComponent(leadData["Event Type"] || "") +
-        "&entry.451712888=" + encodeURIComponent(leadData["Location"] || "") +
-        "&entry.535237839=" + encodeURIComponent(leadData["Estimated Guest Count"] || "") +
-        "&entry.752269560=" + encodeURIComponent(leadData["Hours"] || "");
-
+    function showLeadSuccess() {
       const summaryText = `
-New DJ Lead Collected:
+New DJ Lead Submitted:
 
 Name: ${leadData["Name"]}
 Phone: ${leadData["Phone"]}
@@ -477,16 +476,16 @@ Hours: ${leadData["Hours"]}
       `;
 
       botReply(
-        "Perfect. I collected the event details. Click the button below to open the quote request form with your information already filled in."
+        "Thank you. Your event request has been submitted successfully. DJ Leo will review your request and follow up soon."
       );
 
       leadSummary.style.display = "block";
       leadSummary.innerHTML = `
-        <strong>Lead Captured:</strong>
+        <strong>Lead Submitted Successfully</strong>
         <pre style="white-space: pre-wrap; color: #ddd;">${summaryText}</pre>
-        <a href="${prefilledFormUrl}" target="_blank">
-          Submit Quote Request
-        </a>
+        <p style="color:#ddd; margin-bottom:0;">
+          A notification was sent to Epic Event DJ, and a confirmation email was sent to the customer email provided.
+        </p>
       `;
     }
 
